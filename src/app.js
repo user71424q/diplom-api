@@ -8,6 +8,6 @@ app.use(express.json());
 app.use('/api', apiRoutes);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
+const server = app.listen(PORT, () => console.log(`Сервер запущен на порту ${PORT}`));
 
-module.exports = app;
+module.exports = server;
