@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 const speechController = require('../controllers/speechController');
-// const authController = require('../controllers/authController');
+const authController = require('../controllers/authController');
 const syncController = require('../controllers/syncController');
 const progressController = require('../controllers/progressController');
 
-// Эндпоинты авторизации (Google)
-// router.post('/auth/google', authController.googleAuth);
+// Эндпоинты авторизации (vk)
+router.post('/auth/vk', authController.vk);
 
 // Эндпоинт для озвучивания стихотворения
 router.post('/speech', speechController.synthesizeSpeech);

@@ -20,7 +20,7 @@ describe('SyncService', function() {
   });
   
   it('должен возвращать данные синхронизации и новый sync_id для авторизованного пользователя', async function() {
-    const result = await syncService('userSub123', 100);
+    const result = await syncService.syncData('userSub123', 100);
     expect(result).to.deep.equal({
       data: [
         { sync_id: 101, data: 'row1' },
@@ -33,7 +33,7 @@ describe('SyncService', function() {
   });
 
   it('должен возвращать данные синхронизации и новый sync_id для неавторизованного пользователя', async function() {
-    const result = await syncService(null, 100);
+    const result = await syncService.syncData(null, 100);
     expect(result).to.deep.equal({
       data: [
         { sync_id: 101, data: 'row1' },

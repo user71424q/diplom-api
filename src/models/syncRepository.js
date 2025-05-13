@@ -64,6 +64,21 @@ class SyncRepository {
   }
 
   /**
+   * Удаляет запись об избранном стихотворении из таблицы Favorites.
+   * @param {number} userId - ID пользователя.
+   * @param {number} poemId - ID стихотворения.
+   * @returns {Promise<void>}
+   */
+    async deleteFavorite(userId, poemId) {
+        await this.db.query(
+            'DELETE FROM Favorites WHERE user_id = ? AND poem_id = ?',
+            [userId, poemId]
+        );
+    }
+
+
+
+  /**
    * Обновляет данные пользователя в таблице Users.
    * @param {number} userId - ID пользователя.
    * @param {Object} userData - Объект с обновляемыми данными (user_name и другие поля).
@@ -75,6 +90,25 @@ class SyncRepository {
           [userData, userId]
       );
   }
+
+    /**
+     * Создает пользователя в таблице Users, если не существует, и возвращает user_id.
+     * @param {Object} userData - Данные пользователя (sub, user_name).
+     * @returns {Promise<number>} ID пользователя.
+     */
+    async createUser(userData) {
+        // Вставляем пользователя по sub и user_name, если такого нет
+        await this.db.query(
+            'INSERT INTO Users (sub, user_name) VALUES (?, ?) ON DUPLICATE KEY UPDATE user_name = VALUES(user_name)',
+            [userData.sub, userData.user_name]
+        );
+        // Получаем user_id по sub
+        const [result] = await this.db.query(
+            'SELECT user_id FROM Users WHERE sub = ? LIMIT 1',
+            [userData.sub]
+        );
+        return result.user_id;
+    }
 }
 
 module.exports = SyncRepository;

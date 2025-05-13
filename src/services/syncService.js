@@ -22,4 +22,6 @@ async function syncData(sub, last_sync) {
   }
 }
 
-module.exports = syncData;
+module.exports = {
+  syncData,
+};

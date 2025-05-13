@@ -13,7 +13,7 @@ exports.syncData = async (req, res) => {
     }
     
     // Приводим last_sync_id к числу
-    const data = await syncDataService(sub, Number(last_sync_id));
+    const data = await syncDataService.syncData(sub, Number(last_sync_id));
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });

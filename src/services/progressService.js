@@ -28,17 +28,22 @@ async function submitStats(sub, data) {
  * @param {Object} data - Объект данных для вставки в таблицу Favorites.
  * @returns {Promise<void>}
  */
-async function submitFavorites(sub, data) {
+async function submitFavorites(sub, data, delete_=false) {
   try {
     const userId = await progressRepository.getUserIdBySub(sub);
     if (!userId) throw new Error(`Пользователь с sub=${sub} не найден.`);
-    
-    await progressRepository.insertFavorite(userId, data.poem_id);
+    if (delete_) {
+      await progressRepository.deleteFavorite(userId, data.poem_id);
+    }
+    else {
+      await progressRepository.insertFavorite(userId, data.poem_id);
+    }
   } catch (error) {
     console.error(`Ошибка при обновлении избранного: ${error.message}`);
     throw new Error(`Ошибка обновления избранного: ${error.message}`);
   }
 }
+
 
 /**
  * Обновляет данные пользователя (таблица Users).
@@ -58,8 +63,18 @@ async function updateUserData(sub, data) {
   }
 }
 
+async function createUser(data) {
+  try {
+    await progressRepository.createUser(data);
+  } catch (error) {
+    console.error(`Ошибка при создании пользователя: ${error.message}`);
+    throw new Error(`Ошибка создания пользователя: ${error.message}`);
+  }
+}
+
 module.exports = {
   submitStats,
   submitFavorites,
   updateUserData,
+  createUser,
 };

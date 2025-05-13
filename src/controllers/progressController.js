@@ -36,7 +36,7 @@ exports.submitStats = async (req, res, next) => {
  */
 exports.submitFavorites = async (req, res, next) => {
   try {
-    const { sub, data } = req.body;
+    const { sub, data, delete_flag } = req.body;
     
     if (!sub || typeof sub !== 'string') {
       return res.status(400).json({ error: 'Параметр "sub" обязателен и должен быть строкой.' });
@@ -44,8 +44,12 @@ exports.submitFavorites = async (req, res, next) => {
     if (!data || typeof data !== 'object') {
       return res.status(400).json({ error: 'Параметр "data" обязателен и должен быть объектом.' });
     }
+    //флаг должен быть bool или отсутствовать
+    if (delete_flag !== undefined && typeof delete_flag !== 'boolean') {
+      return res.status(400).json({ error: 'Параметр "delete_flag" должен быть булевым значением.' });
+    }
     
-    await progressService.submitFavorites(sub, data);
+    await progressService.submitFavorites(sub, data, delete_flag);
     return res.status(200).json({ message: 'Избранное успешно обновлено.' });
   } catch (error) {
     return res.status(500).json({ error: 'Ошибка сервиса' });
