@@ -1,0 +1,241 @@
+openapi: 3.0.0
+info:
+  title: API по запоминанию стихов
+  description: Ручная спецификация API для приложения по запоминанию стихов.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Локальный сервер разработки
+paths:
+  /auth/vk:
+    post:
+      summary: Регистрация или обновление пользователя через VK
+      description: Создаёт или обновляет пользователя по данным VK.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sub
+                - user_name
+              properties:
+                sub:
+                  type: string
+                  description: VK идентификатор пользователя
+                user_name:
+                  type: string
+                  description: Имя пользователя
+            examples:
+              vkAuth:
+                summary: Пример данных
+                value:
+                  sub: vk123456789
+                  user_name: Иван Иванов
+      responses:
+        '200':
+          description: Данные пользователя успешно обновлены.
+        '400':
+          description: Некорректные входные данные
+        '500':
+          description: Ошибка сервиса
+  /sync:
+    post:
+      summary: Синхронизация данных клиента и сервера
+      description: Синхронизирует данные между клиентом и сервером по последнему идентификатору синхронизации.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - last_sync_id
+              properties:
+                sub:
+                  type: string
+                  nullable: true
+                  description: Уникальный идентификатор пользователя (или null, если не авторизован)
+                last_sync_id:
+                  type: integer
+                  description: Последний id синхронизации, обязателен
+            examples:
+              syncExample:
+                summary: Пример синхронизации
+                value:
+                  sub: vk123456789
+                  last_sync_id: 42
+      responses:
+        '200':
+          description: Успешный ответ с синхронизированными данными.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                  new_sync_id:
+                    type: integer
+        '400':
+          description: Некорректные входные данные
+        '500':
+          description: Внутренняя ошибка сервера
+  /speech:
+    post:
+      summary: Синтез речи по тексту
+      description: Синтезирует речь по переданному тексту. Возвращает аудиофайл в формате opus или wav16.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  description: Текст для озвучки
+                voice:
+                  type: string
+                  description: Идентификатор голоса (необязательно)
+                format:
+                  type: string
+                  enum:
+                    - opus
+                    - wav16
+                  description: Формат аудиофайла (opus или wav16, необязательно)
+            examples:
+              synthesizeExample:
+                summary: Пример запроса на синтез
+                value:
+                  text: Буря мглою небо кроет
+                  voice: Nec_24000
+                  format: opus
+      responses:
+        '200':
+          description: Аудиофайл с синтезированной речью.
+        '400':
+          description: Некорректные входные данные.
+        '503':
+          description: Внешний сервис синтеза речи недоступен.
+  /sync/stats:
+    post:
+      summary: Обновление прогресса пользователя
+      description: Создаёт или обновляет запись о прогрессе пользователя (таблица Scores).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sub
+                - data
+              properties:
+                sub:
+                  type: string
+                  description: Уникальный идентификатор пользователя
+                data:
+                  type: object
+                  description: Данные прогресса (структура зависит от таблицы Scores)
+            examples:
+              submitStats:
+                summary: Пример запроса
+                value:
+                  sub: vk123456789
+                  data:
+                    poem_id: 1
+                    score_time: '2024-02-17 14:30:00'
+                    score_grade: 5
+                    difficulty: med
+                    level: level2
+      responses:
+        '200':
+          description: Данные о прогрессе успешно обновлены.
+        '400':
+          description: Некорректные входные данные
+        '500':
+          description: Ошибка сервиса
+  /sync/favorites:
+    post:
+      summary: Обновление или удаление избранного
+      description: Добавляет или удаляет запись в избранном пользователя (таблица Favorites).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sub
+                - data
+              properties:
+                sub:
+                  type: string
+                  description: Уникальный идентификатор пользователя
+                data:
+                  type: object
+                  description: Данные избранного (структура зависит от таблицы Favorites)
+                delete_flag:
+                  type: boolean
+                  description: Удалить из избранного (true), добавить/обновить (false/undefined)
+            examples:
+              addFavorite:
+                summary: Добавление в избранное
+                value:
+                  sub: vk123456789
+                  data:
+                    poem_id: 7
+              removeFavorite:
+                summary: Удаление из избранного
+                value:
+                  sub: vk123456789
+                  data:
+                    poem_id: 7
+                  delete_flag: true
+      responses:
+        '200':
+          description: Избранное успешно обновлено.
+        '400':
+          description: Некорректные входные данные
+        '500':
+          description: Ошибка сервиса
+  /sync/users:
+    post:
+      summary: Обновление пользовательских данных
+      description: Обновляет данные пользователя (таблица Users).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sub
+                - data
+              properties:
+                sub:
+                  type: string
+                  description: Уникальный идентификатор пользователя
+                data:
+                  type: object
+                  description: Данные пользователя (структура зависит от Users)
+            examples:
+              updateUserData:
+                summary: Обновление имени пользователя
+                value:
+                  sub: vk123456789
+                  data:
+                    user_name: Новый пользователь
+      responses:
+        '200':
+          description: Данные пользователя успешно обновлены.
+        '400':
+          description: Некорректные входные данные
+        '500':
+          description: Ошибка сервиса
